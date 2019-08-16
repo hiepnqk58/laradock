@@ -1,0 +1,69 @@
+# Tạo file .env
+cd laradock
+cp env-example .env
+vi .env
+
+# Cấu hình Web Server
+APP_CODE_PATH_HOST=../www
+DATA_PATH_HOST=../data
+WORKSPACE_SSH_PORT=222
+
+PHP_VERSION=7.2
+
+PMA_DB_ENGINE=mysql
+
+MYSQL_VERSION=5.7
+MYSQL_DATABASE=default
+MYSQL_USER=default
+MYSQL_PASSWORD=secret
+MYSQL_PORT=3306
+MYSQL_ROOT_PASSWORD=root
+
+Use Mongo
+WORKSPACE_INSTALL_MONGO=true 
+PHP_FPM_INSTALL_MONGO=true
+
+# Chạy Web Server
+docker-compose up -d nginx mysql phpmyadmin mongo
+
+# Chạy Workspace
+docker-compose exec workspace bash
+docker-compose exec --user=laradock workspace bash
+
+# Thoát Workspace
+exit
+
+# cập nhật khi thay đổi ~/laradock/.env
+rm -rf ~/.laradock/data
+docker-compose down
+docker-compose up -d nginx mysql phpmyadmin mongo
+
+docker-compose stop
+
+docker-compose restart nginx mysql phpmyadmin mongo
+
+docker-compose logs --tail=5 nginx
+
+# Trỏ domain đến IP
+docker-compose exec php-fpm bash
+echo "10.0.75.1 api.vtvtravel.test" >> /etc/hosts
+
+# Backup
+docker exec CONTAINER /usr/bin/mysqldump -u root --password=root DATABASE > backup.sql
+
+# Restore
+docker exec CONTAINER /usr/bin/mysqldump -u root --password=root -r DATABASE | Set-Content backup.sql
+
+docker exec laradock_mysql_1 /usr/bin/mysqldump -u root --password=root -r vtv_travel_db | Set-Content backup.sql
+
+
+
+
+
+
+
+
+
+
+
+
